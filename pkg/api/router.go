@@ -1,8 +1,6 @@
 package api
 
 import (
-	"printer-app/internal/config"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,8 +10,10 @@ func InitializeRouter(router *gin.Engine) {
 	router.GET("/printers", ListPrintersHandler)
 	router.POST("/print", PrintDocumentHandler)
 }
-func StartServer(cfg *config.Config) error {
+
+// func StartServer(cfg *config.Config) error
+func StartServer() error {
 	router := gin.Default()
 	InitializeRouter(router)
-	return router.Run(":" + cfg.ServerPort)
+	return router.Run(":" + "3050")
 }
