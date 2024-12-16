@@ -1,26 +1,43 @@
 package platform
 
-import (
-	"fmt"
-	"os/exec"
-	"strings"
-)
+// import (
+// 	"syscall"
+// 	"unsafe"
 
-func DiscoverPrintersWindows() ([]string, error) {
-	cmd := exec.Command("powershell", "Get-Printer")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("failed to discover printers: %v", err)
-	}
+// 	"golang.org/x/sys/windows"
+// )
 
-	// Parse the output to get printer names
-	printers := []string{}
-	for _, line := range strings.Split(string(out), "\n") {
-		if strings.Contains(line, "Name") {
-			printer := strings.TrimSpace(strings.Split(line, ":")[1])
-			printers = append(printers, printer)
-		}
-	}
+// // DiscoverPrintersWindows lists printers using Windows APIs.
+// func DiscoverPrintersWindows() ([]string, error) {
+// 	lib, err := syscall.LoadLibrary("winspool.drv")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer syscall.FreeLibrary(lib)
 
-	return printers, nil
-}
+// 	proc, err := syscall.GetProcAddress(lib, "EnumPrintersW")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	type PRINTER_INFO_2 struct {
+// 		pPrinterName *uint16
+// 		// Other fields omitted for brevity
+// 	}
+
+// 	var needed, returned uint32
+// 	windows.EnumPrinters(windows.PRINTER_ENUM_LOCAL, nil, 2, nil, 0, &needed, &returned)
+// 	buffer := make([]byte, needed)
+// 	windows.EnumPrinters(windows.PRINTER_ENUM_LOCAL, nil, 2, &buffer[0], needed, &needed, &returned)
+
+// 	var printers []string
+// 	count := int(returned)
+// 	offset := uintptr(unsafe.Pointer(&buffer[0]))
+
+// 	for i := 0; i < count; i++ {
+// 		info := (*PRINTER_INFO_2)(unsafe.Pointer(offset))
+// 		printers = append(printers, windows.UTF16PtrToString(info.pPrinterName))
+// 		offset += unsafe.Sizeof(*info)
+// 	}
+// 	return printers, nil
+// }
