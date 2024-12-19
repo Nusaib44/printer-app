@@ -9,6 +9,8 @@ func InitializeRouter(router *gin.Engine) {
 	// Define routes
 	router.GET("/printers", ListPrintersHandler)
 	router.POST("/print", PrintDocumentHandler)
+	router.POST("/printers/configure", ConfigurePrinter)
+
 }
 
 // func StartServer(cfg *config.Config) error

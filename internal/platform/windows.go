@@ -1,43 +1,52 @@
 package platform
 
-// import (
-// 	"syscall"
-// 	"unsafe"
+import (
+	"fmt"
+	"os/exec"
+	"strings"
+)
 
-// 	"golang.org/x/sys/windows"
-// )
+func DiscoverPrintersWindows() ([]Printer, error) {
+	cmd := exec.Command("wmic", "printer", "get", "Name,Status,Location,DriverName")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
 
-// // DiscoverPrintersWindows lists printers using Windows APIs.
-// func DiscoverPrintersWindows() ([]string, error) {
-// 	lib, err := syscall.LoadLibrary("winspool.drv")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer syscall.FreeLibrary(lib)
+	var printers []Printer
+	lines := strings.Split(string(output), "\n")
+	for i, line := range lines {
+		// Skip header
+		if i == 0 || strings.TrimSpace(line) == "" {
+			continue
+		}
+		parts := strings.Fields(line)
+		if len(parts) >= 2 {
+			printerName := parts[0]
+			status := parts[1]
+			model := "unknown" // Placeholder, can enhance if more data is available
 
-// 	proc, err := syscall.GetProcAddress(lib, "EnumPrintersW")
-// 	if err != nil {
-// 		return nil, err
-// 	}
+			printers = append(printers, Printer{
+				Name:     printerName,
+				Status:   status,
+				Type:     "physical",
+				Location: "unknown", // Windows doesn't always provide this
+				Model:    model,
+			})
+		}
+	}
 
-// 	type PRINTER_INFO_2 struct {
-// 		pPrinterName *uint16
-// 		// Other fields omitted for brevity
-// 	}
+	return printers, nil
+}
 
-// 	var needed, returned uint32
-// 	windows.EnumPrinters(windows.PRINTER_ENUM_LOCAL, nil, 2, nil, 0, &needed, &returned)
-// 	buffer := make([]byte, needed)
-// 	windows.EnumPrinters(windows.PRINTER_ENUM_LOCAL, nil, 2, &buffer[0], needed, &needed, &returned)
-
-// 	var printers []string
-// 	count := int(returned)
-// 	offset := uintptr(unsafe.Pointer(&buffer[0]))
-
-// 	for i := 0; i < count; i++ {
-// 		info := (*PRINTER_INFO_2)(unsafe.Pointer(offset))
-// 		printers = append(printers, windows.UTF16PtrToString(info.pPrinterName))
-// 		offset += unsafe.Sizeof(*info)
-// 	}
-// 	return printers, nil
-// }
+func configureForWindows(printerName string, settings map[string]string) error {
+	// Example: Set default printer using PowerShell
+	if settings["default"] == "true" {
+		cmd := exec.Command("powershell", "-Command", fmt.Sprintf(`Set-DefaultPrinter -Name "%s"`, printerName))
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to set default printer: %w", err)
+		}
+	}
+	// Add more settings logic as needed
+	return nil
+}

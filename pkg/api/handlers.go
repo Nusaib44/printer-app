@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"printer-app/internal/platform"
 	"printer-app/internal/printers"
+	"printer-app/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,4 +30,24 @@ func PrintDocumentHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Document sent to printer successfully"})
+}
+
+func ConfigurePrinter(c *gin.Context) {
+	var req struct {
+		PrinterName string            `json:"printer_name" binding:"required"`
+		Settings    map[string]string `json:"settings"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.ErrorResponse(c, err)
+		return
+	}
+
+	err := platform.Configure(req.PrinterName, req.Settings)
+	if err != nil {
+		common.ErrorResponse(c, err)
+		return
+	}
+
+	common.JSONResponse(c, 200, "Printer configuration updated successfully", req)
 }

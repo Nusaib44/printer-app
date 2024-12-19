@@ -1,0 +1,250 @@
+# Printer Manager Application
+
+## Overview
+
+The Printer Manager Application is a cross-platform backend solution for managing printers. It supports discovering printers, configuring settings, and sending documents for printing. This project is implemented in Go and provides RESTful APIs for managing printers effectively.
+
+---
+
+## Features
+
+- **Printer Discovery:** List all printers available on the system.
+- **Printer Configuration:** Customize printer settings dynamically.
+- **Print Documents:** Send files to printers.
+- **Platform Support:** macOS, Linux, and Windows (platform-specific features included).
+- **API Endpoints:** Simplified management through a RESTful interface.
+
+---
+
+## Installation
+
+1. **Clone the Repository:**
+
+   ```bash
+   git clone <repository-url>
+   cd printer-manager
+   ```
+
+2. **Build the Application:**
+
+   ```bash
+   go build -o printer-manager cmd/app/main.go
+   ```
+
+3. **Run the Application:**
+
+   ```bash
+   ./printer-manager
+   ```
+
+4. **Access the API:**
+   The application runs on the configured `SERVER_PORT`. Access it via tools like Postman or cURL.
+
+---
+
+## API Documentation
+
+### **Base URL**
+
+```
+http://localhost:{PORT}
+```
+
+Replace `{PORT}` with the actual port configured in your application.
+
+---
+
+### **Endpoints**
+
+#### 1. **GET /printers**
+
+**Description:** Retrieve a list of all available printers on the system.
+
+**Response:**
+
+- **Status 200 OK**
+  ```json
+  {
+    "data": [
+      {
+        "name": "HP_DeskJet_2300_series",
+        "status": "ready",
+        "default": true,
+        "capabilities": {
+          "duplex": true,
+          "color": true,
+          "max_pages_per_minute": 10
+        }
+      },
+      {
+        "name": "Test_Printer",
+        "status": "offline",
+        "default": false,
+        "capabilities": {
+          "duplex": false,
+          "color": false,
+          "max_pages_per_minute": 5
+        }
+      }
+    ],
+    "message": "Printers retrieved successfully"
+  }
+  ```
+
+---
+
+#### 2. **POST /printers/configure**
+
+**Description:** Configure settings for a specific printer.
+
+**Request Body:**
+
+- **Content-Type:** `application/json`
+  ```json
+  {
+    "printer_name": "HP_DeskJet_2300_series",
+    "settings": {
+      "default": "true",
+      "orientation": "portrait",
+      "color": "true"
+    }
+  }
+  ```
+
+**Response:**
+
+- **Status 200 OK**
+
+  ```json
+  {
+    "data": {
+      "printer_name": "HP_DeskJet_2300_series",
+      "settings": {
+        "default": "true",
+        "orientation": "portrait",
+        "color": "true"
+      }
+    },
+    "message": "Printer configuration updated successfully"
+  }
+  ```
+
+- **Status 400 Bad Request**
+  ```json
+  {
+    "data": null,
+    "message": "Printer not found"
+  }
+  ```
+
+---
+
+#### 3. **POST /printers/print**
+
+**Description:** Send a document to the specified printer for printing.
+
+**Request Body:**
+
+- **Content-Type:** `multipart/form-data`
+
+Fields:
+
+1. `printer_name` (string) - Name of the printer.
+2. `file` (file) - Document file to be printed.
+
+**Response:**
+
+- **Status 200 OK**
+
+  ```json
+  {
+    "data": {
+      "printer_name": "HP_DeskJet_2300_series",
+      "file_name": "test_document.pdf",
+      "status": "Print job submitted"
+    },
+    "message": "File sent to printer successfully"
+  }
+  ```
+
+- **Status 400 Bad Request**
+  ```json
+  {
+    "data": null,
+    "message": "Printer not found or unsupported file type"
+  }
+  ```
+
+---
+
+#### 4. **GET /printers/{printer_name}/metadata**
+
+**Description:** Retrieve detailed metadata for a specific printer.
+
+**Path Parameters:**
+
+- `printer_name` (string): Name of the printer.
+
+**Response:**
+
+- **Status 200 OK**
+
+  ```json
+  {
+    "data": {
+      "name": "HP_DeskJet_2300_series",
+      "status": "ready",
+      "capabilities": {
+        "duplex": true,
+        "color": true,
+        "max_pages_per_minute": 10,
+        "paper_sizes": ["A4", "Letter", "Legal"]
+      }
+    },
+    "message": "Printer metadata retrieved successfully"
+  }
+  ```
+
+- **Status 404 Not Found**
+  ```json
+  {
+    "data": null,
+    "message": "Printer not found"
+  }
+  ```
+
+---
+
+#### 5. **GET /health**
+
+**Description:** Check the health status of the Printer Manager Application.
+
+**Response:**
+
+- **Status 200 OK**
+  ```json
+  {
+    "data": {
+      "status": "healthy",
+      "platform": "macOS",
+      "uptime": "5m10s"
+    },
+    "message": "Service is running"
+  }
+  ```
+
+---
+
+## Error Codes
+
+- **400 Bad Request:** Invalid input data or missing required parameters.
+- **404 Not Found:** Resource not found (e.g., printer name does not exist).
+- **500 Internal Server Error:** Unexpected error occurred.
+
+---
+
+## Future Enhancements
+
+- **Queue Management:** API to check pending print jobs.
+- **Cancel Print Jobs:** API to cancel ongoing or queued print jobs.
+- **Printer Sharing:** API to share printers over the network.

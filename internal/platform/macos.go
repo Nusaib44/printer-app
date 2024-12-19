@@ -6,13 +6,7 @@ import (
 	"strings"
 )
 
-type Printer struct {
-	Name     string `json:"name"`
-	Status   string `json:"status"`
-	Type     string `json:"type"`
-	Location string `json:"location"`
-	Model    string `json:"model"`
-}
+
 
 func DiscoverPrintersMacOS() ([]Printer, error) {
 	// Run lpstat to get the list of printers
